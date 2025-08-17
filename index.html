@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Life Goals</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Pacifico&family=Shadows+Into+Light&display=swap');
+
+    body {
+      margin: 0;
+      font-family: 'Shadows Into Light', cursive;
+    }
+
+    /* Cover page */
+    #cover {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: linear-gradient(135deg, #ffecd2, #fcb69f);
+      text-align: center;
+    }
+
+    #cover h1 {
+      font-size: 40px;
+      margin-bottom: 20px;
+      font-family: 'Pacifico', cursive;
+      color: #333;
+    }
+
+    #cover input, #cover select, #cover button {
+      padding: 12px;
+      margin: 8px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: none;
+    }
+
+    #cover button {
+      background-color: #333;
+      color: white;
+      cursor: pointer;
+    }
+
+    /* Main goals page */
+    #main {
+      display: none;
+      min-height: 100vh;
+      padding: 20px;
+      font-family: 'Shadows Into Light', cursive;
+      font-size: 20px;
+    }
+
+    header {
+      text-align: center;
+      font-size: 30px;
+      font-weight: bold;
+      padding: 20px;
+      color: white;
+      border-radius: 12px;
+      font-family: 'Pacifico', cursive;
+    }
+
+    .category {
+      background: rgba(255, 255, 255, 0.85);
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    }
+
+    .category h2 {
+      font-size: 24px;
+      margin-bottom: 10px;
+      color: #222;
+      font-family: 'Pacifico', cursive;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      font-size: 18px;
+      margin: 8px 0;
+    }
+
+    input[type="checkbox"] {
+      transform: scale(1.2);
+      margin-right: 10px;
+    }
+
+    .tick {
+      color: green;
+      font-weight: bold;
+    }
+
+    .add-item, .add-category {
+      margin-top: 10px;
+    }
+
+    .add-item input, .add-category input {
+      padding: 6px;
+      border: 1px solid #aaa;
+      border-radius: 6px;
+    }
+
+    .add-item button, .add-category button, #reset {
+      padding: 6px 10px;
+      margin-left: 5px;
+      cursor: pointer;
+      border: none;
+      background: #333;
+      color: white;
+      border-radius: 6px;
+    }
+
+    #reset {
+      background: crimson;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Cover Page -->
+  <div id="cover">
+    <h1>Welcome to Your Life Goals ✨</h1>
+    <input type="text" id="name" placeholder="Enter your name">
+    <select id="color">
+      <option value="skyblue">Sky Blue</option>
+      <option value="lightgreen">Light Green</option>
+      <option value="lightcoral">Coral Pink</option>
+      <option value="plum">Plum Purple</option>
+      <option value="gold">Golden Yellow</option>
+      <option value="lavender">Lavender</option>
+      <option value="peachpuff">Peach</option>
+      <option value="lightseagreen">Sea Green</option>
+      <option value="lightsalmon">Salmon</option>
+    </select>
+    <button onclick="start()">Continue</button>
+  </div>
+
+  <!-- Main Goals Page -->
+  <div id="main">
+    <header id="header"></header>
+
+    <div id="categories"></div>
+
+    <div class="add-category">
+      <input type="text" id="new-category" placeholder="New category name">
+      <button onclick="addCategory()">Add Category</button>
+    </div>
+
+    <button id="reset" onclick="resetApp()">Reset & Restart</button>
+  </div>
+
+  <script>
+    let user = JSON.parse(localStorage.getItem("user")) || {};
+    let categories = JSON.parse(localStorage.getItem("categories")) || [];
+
+    const defaultCategories = [
+      {
+        title: "🌞 Everyday Goals",
+        tasks: [
+          "Stop saying 'I don’t know' all the time.",
+          "Talk to a stranger every day.",
+          "Say 'thank you' like you mean it.",
+          "Sleep before midnight once a week.",
+          "Get married (maybe?) between 25–35.",
+          "Retire at a ridiculously young age."
+        ]
+      },
+      {
+        title: "🎨 Lifetime Goals",
+        tasks: [
+          "Learn to cook something beyond Maggi.",
+          "Pick up painting/drawing.",
+          "Try an instrument.",
+          "Fall in love again(not necessarily human).",
+          "Write and publish a book.",
+          "Become CEO of a company."
+        ]
+      },
+      {
+        title: "🌍 Countries to Visit",
+        tasks: [
+          "India"
+        ]
+      },
+      {
+        title: "👨‍👩‍👧 Parents",
+        tasks: [
+          "Take them on an aeroplane ride.",
+          "Get them a foreign trip.",
+          "Compulsory vacation once a year."
+        ]
+      }
+    ];
+
+    function start() {
+      const name = document.getElementById("name").value;
+      const color = document.getElementById("color").value;
+
+      if (!name) {
+        alert("Please enter your name!");
+        return;
+      }
+
+      user = { name, color };
+      localStorage.setItem("user", JSON.stringify(user));
+
+      if (categories.length === 0) {
+        categories = defaultCategories.map(cat => ({
+          title: cat.title,
+          tasks: cat.tasks.map(t => ({ text: t, done: false }))
+        }));
+        saveData();
+      }
+
+      renderPage();
+    }
+
+    function renderPage() {
+      document.getElementById("cover").style.display = "none";
+      document.getElementById("main").style.display = "block";
+      document.getElementById("main").style.backgroundColor = user.color;
+
+      const header = document.getElementById("header");
+      header.textContent = `${user.name}'s Life Goals`;
+      header.style.backgroundColor = user.color;
+
+      renderCategories();
+    }
+
+    function renderCategories() {
+      const container = document.getElementById("categories");
+      container.innerHTML = "";
+
+      categories.forEach((cat, catIndex) => {
+        let div = document.createElement("div");
+        div.className = "category";
+
+        let h2 = document.createElement("h2");
+        h2.textContent = cat.title;
+        div.appendChild(h2);
+
+        let ul = document.createElement("ul");
+        cat.tasks.forEach((task, taskIndex) => {
+          let li = document.createElement("li");
+          let cb = document.createElement("input");
+          cb.type = "checkbox";
+          cb.checked = task.done;
+          cb.onchange = () => toggleTask(catIndex, taskIndex);
+
+          li.appendChild(cb);
+          li.appendChild(document.createTextNode(task.text));
+
+          if (task.done) li.classList.add("tick");
+
+          ul.appendChild(li);
+        });
+        div.appendChild(ul);
+
+        let addDiv = document.createElement("div");
+        addDiv.className = "add-item";
+        addDiv.innerHTML = `
+          <input type="text" id="task-${catIndex}" placeholder="Add new task">
+          <button onclick="addTask(${catIndex})">Add</button>
+        `;
+        div.appendChild(addDiv);
+
+        container.appendChild(div);
+      });
+    }
+
+    function addTask(catIndex) {
+      const input = document.getElementById(`task-${catIndex}`);
+      if (input.value.trim() === "") return;
+      categories[catIndex].tasks.push({ text: input.value, done: false });
+      input.value = "";
+      saveData();
+      renderCategories();
+    }
+
+    function toggleTask(catIndex, taskIndex) {
+      categories[catIndex].tasks[taskIndex].done = !categories[catIndex].tasks[taskIndex].done;
+      saveData();
+      renderCategories();
+    }
+
+    function addCategory() {
+      const input = document.getElementById("new-category");
+      if (input.value.trim() === "") return;
+      categories.push({ title: input.value, tasks: [] });
+      input.value = "";
+      saveData();
+      renderCategories();
+    }
+
+    function saveData() {
+      localStorage.setItem("categories", JSON.stringify(categories));
+    }
+
+    function resetApp() {
+      localStorage.clear();
+      location.reload();
+    }
+
+    // 👇 Always show cover page first,
+    // but pre-fill saved name/color if available
+    window.onload = () => {
+      if (user.name) {
+        document.getElementById("name").value = user.name;
+        document.getElementById("color").value = user.color;
+      }
+    };
+  </script>
+</body>
+</html>
